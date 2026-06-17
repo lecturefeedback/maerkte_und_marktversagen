@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dein Feedback für Märkte und Marktversagen</title>
+<title>Dein Feedback für Öko</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet"> <!-- normale cards -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@200;400;600&display=swap" rel="stylesheet"> <!-- thank you card -->
@@ -447,7 +447,7 @@ textarea {
 
 <div class="card">
 
-  <div class="form-header">2026Sxxxxxx VO Märkte und Marktversagen</div> <!-- Titel der VO HIER UNBEDINGT NOCH ANPASSEN -->
+  <div class="form-header">2026S404020 VO Ökonomie des öffentlichen Sektors</div> <!-- Titel der VO -->
   <div class="progress">
     <div class="bar" id="bar"></div>
   </div>
@@ -593,6 +593,22 @@ const card = document.querySelector(".card");
 const SUPABASE_URL = "https://npfvurxupmvjhkiwkudc.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wZnZ1cnh1cG12amhraXdrdWRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMTk5MzMsImV4cCI6MjA5Mzg5NTkzM30.-nRPsD7McszSQMkqtbW-ms8110BZGAj7Tdcs1a5Log4";
 
+// === GRUPPEN-LOGIK ===
+// Welche Gruppe geantwortet hat, wird über den URL-Parameter ?gruppe=1|2|3|4 gesteuert
+// und in der Spalte "group_id" mitgespeichert. Eine einzige Tabelle für alle Gruppen.
+// Beispiel-Links zum Verschicken:
+//   .../?gruppe=1   .../?gruppe=2   .../?gruppe=3   .../?gruppe=4
+// Wenn kein gültiger Parameter übergeben wird, fällt es auf Gruppe 1 zurück.
+const urlParams = new URLSearchParams(window.location.search);
+let gruppe = urlParams.get("gruppe");
+if (!["1", "2", "3", "4"].includes(gruppe)) {
+  gruppe = "5";
+}
+const GROUP_NUMBER = Number(gruppe);
+const RESPONSES_TABLE = "ResponsesMuM";
+const MAILS_TABLE = "MailsMum";
+// === ENDE GRUPPEN-LOGIK ===
+
 const values = [
   "Nie",
   "Selten",
@@ -610,7 +626,7 @@ const values2 = [
 
 async function submitSurvey(data) {
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/ResponsesMuM`,
+    `${SUPABASE_URL}/rest/v1/${RESPONSES_TABLE}`,
     {
       method: "POST",
       headers: {
@@ -782,6 +798,7 @@ form.addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const data = {
+    group_id: GROUP_NUMBER,
     frequency: frequencyInput.value,
     relevance: relevanceInput.value,
     reason: form.reason.value,
@@ -804,7 +821,7 @@ async function submitMail() {
   if (!email) return;
 
   const response = await fetch(
-    `${SUPABASE_URL}/rest/v1/MailsMuM`,
+    `${SUPABASE_URL}/rest/v1/${MAILS_TABLE}`,
     {
       method: "POST",
       headers: {
@@ -813,7 +830,7 @@ async function submitMail() {
         "Authorization": `Bearer ${SUPABASE_KEY}`,
         "Prefer": "return=minimal"
       },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, group_id: GROUP_NUMBER })
     }
   );
 
